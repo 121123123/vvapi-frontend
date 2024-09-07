@@ -18,3 +18,10 @@ declare module 'react-fittext';
 declare module 'bizcharts-plugin-slider';
 
 declare const REACT_APP_ENV: 'test' | 'dev' | 'pre' | false;
+
+/**
+ * @description: 全局状态信息
+ */
+interface InitialState{
+  loginUser: API.UserVO, // 登录用户信息
+}
