@@ -20,7 +20,7 @@ export async function getInitialState(): Promise<InitialState> {
   const state: InitialState = {
     // 初始化登录状态
     loginUser: undefined,
-  };
+  }
   try {
     const res = await getLoginUserUsingGet();
     if (res.data) {
@@ -46,13 +46,13 @@ export const layout: RunTimeLayoutConfig = ({initialState, setInitialState}) => 
       },
     },
     waterMarkProps: {
-      content: initialState?.currentUser?.userName,
+      content: initialState?.loginUser?.userName,
     },
     footerRender: () => <Footer/>,
     onPageChange: () => {
       const {location} = history;
       // 如果没有登录，重定向到 login
-      if (!initialState?.currentUser && location.pathname !== loginPath) {
+      if (!initialState?.loginUser && location.pathname !== loginPath) {
         history.push(loginPath);
       }
     },
