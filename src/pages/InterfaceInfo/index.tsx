@@ -1,349 +1,119 @@
-import {addRule, removeRule, rule, updateRule} from '@/services/ant-design-pro/api';
-import {PlusOutlined} from '@ant-design/icons';
-import type {ActionType, ProColumns, ProDescriptionsItemProps} from '@ant-design/pro-components';
+import {PageContainer} from '@ant-design/pro-components';
+
+import React, {useEffect, useState} from 'react';
 import {
-  FooterToolbar,
-  PageContainer,
-  ProDescriptions,
-  ProTable,
-} from '@ant-design/pro-components';
-import {FormattedMessage, useIntl} from '@umijs/max';
-import {Button, Drawer, Input, message} from 'antd';
-import React, {useRef, useState} from 'react';
-import type {FormValueType} from './components/UpdateForm';
-import UpdateForm from './components/UpdateForm';
-import {
-  addInterfaceInfoUsingPost, deleteInterfaceInfoUsingPost,
-  listInterfaceInfoByPageUsingPost, updateInterfaceInfoUsingPost
+  getInterfaceInfoVoByIdUsingGet, invokeInterfaceInfoUsingPost,
 } from "@/services/api-backend/interfaceInfoController";
-import {SortOrder} from "antd/lib/table/interface";
-import CreateModal from "@/pages/InterfaceInfo/components/CreateModal";
-import UpdateModal from "@/pages/InterfaceInfo/components/UpdateModal";
+import {Button, Card, Descriptions, Form, message, Input, Divider} from "antd";
+import {useParams} from 'react-router';
 
-/**
- * @en-US Add node
- * @zh-CN 添加节点
- * @param fields
- */
-const TableList: React.FC = () => {
-  /**
-   * @en-US Pop-up window of new window
-   * @zh-CN 新建窗口的弹窗
-   *  */
-  const [createModalOpen, handleModalOpen] = useState<boolean>(false);
-  /**
-   * @en-US The pop-up window of the distribution update window
-   * @zh-CN 分布更新窗口的弹窗
-   * */
-  const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
+const Index: React.FC = () => {
+  // 定义状态和钩子函数
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<API.InterfaceInfo>();
 
-  const [showDetail, setShowDetail] = useState<boolean>(false);
+  // 存储结果变量
+  const [invokeRes, setInvokeRes] = useState<any>();
+  // 调用加载状态变量，默认为false
+  const [invokeLoading, setInvokeLoading] = useState(false);
 
-  const actionRef = useRef<ActionType>();
-  const [currentRow, setCurrentRow] = useState<API.InterfaceInfo>();
-  const [selectedRowsState, setSelectedRows] = useState<API.InterfaceInfo[]>([]);
+  // 使用 useParams 钩子函数获取动态路由参数
+  const params = useParams();
 
-
-  const handleAdd = async (fields: API.InterfaceInfo) => {
-    const hide = message.loading('正在添加');
-    try {
-      await addInterfaceInfoUsingPost({
-        ...fields,
-      } as API.InterfaceInfoAddRequest);
-      hide();
-      message.success('添加成功');
-      handleModalOpen(false);
-      return true;
-    } catch (error) {
-      hide();
-      message.error('创建失败' + error.message);
-      return false;
-    }
-  };
-
-  /**
-   * @en-US Update node
-   * @zh-CN 更新节点
-   *
-   * @param fields
-   */
-  const handleUpdate = async (fields: InterfaceInfo) => {
-    if (!currentRow) {
+  const loadData = async () => {
+    // 检查动态路由参数是否存在
+    if (!params.id) {
+      message.error('参数不存在');
       return;
     }
-    const hide = message.loading('修改中');
+    setLoading(true);
     try {
-      await updateInterfaceInfoUsingPost({
-        id: currentRow.id,
-        ...fields,
+      // 发起请求获取接口信息，接受一个包含 id 参数的对象作为参数
+      const res = await getInterfaceInfoVoByIdUsingGet({
+        id: Number(params.id),
       });
-      hide();
-      message.success('操作成功');
-      return true;
-    } catch (error) {
-      hide();
-      message.error('操作失败' + error.message);
-      return false;
-    }
-  };
-
-  /**
-   *  Delete node
-   * @zh-CN 删除节点
-   *
-   * @param selectedRows
-   */
-  const handleRemove = async (record: API.InterfaceInfo) => {
-    const hide = message.loading('正在删除');
-    if (!record) return true;
-    try {
-      await deleteInterfaceInfoUsingPost({
-        id: record.id
-      });
-      hide();
-      message.success('删除成功');
-      //删除成功后自动刷新
-      actionRef.current?.reload();
-      return true;
+      // 将获取到的接口信息设置到 data 状态中
+      setData(res.data);
     } catch (error: any) {
-      hide();
-      message.error('删除失败' + error.message);
-      return false;
+      // 请求失败处理
+      message.error('请求失败，' + error.message);
     }
+    // 请求完成，设置 loading 状态为 false，表示请求结束，可以停止加载状态的显示
+    setLoading(false);
   };
 
-  /**
-   * @en-US International configuration
-   * @zh-CN 国际化配置
-   * */
-  const intl = useIntl();
+  useEffect(() => {
+    loadData();
+  }, []);
 
-  const columns: ProColumns<API.InterfaceInfo>[] = [
-    {
-      title: 'id',
-      dataIndex: 'id',
-      valueType: 'index',
-    },
-    {
-      title: '接口名称',
-      dataIndex: 'name',
-      valueType: 'text',
-      formItemProps: {
-        required: true,
-      }
-    },
-    {
-      title: '描述',
-      dataIndex: 'description',
-      valueType: 'textarea',
-    },
-    {
-      title: '请求方法',
-      dataIndex: 'method',
-      valueType: 'text',
-      formItemProps: {
-        required: true,
-      }
-    },
-    {
-      title: 'url',
-      dataIndex: 'url',
-      valueType: 'text',
-      formItemProps: {
-        required: true,
-      }
-    },
-    {
-      title: '请求头',
-      dataIndex: 'requestHeader',
-      valueType: 'text',
-    },
-    {
-      title: '响应头',
-      dataIndex: 'responseHeader',
-      valueType: 'text',
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      hideInForm: true,
-      valueEnum: {
-        0: {
-          text: '禁用',
-          status: 'Default',
-        },
-        1: {
-          text: '启用',
-          status: 'Processing',
-        },
-      }
-    },
-    {
-      title: '创建时间',
-      dataIndex: 'createTime',
-      valueType: 'dateTime',
-      hideInForm: true,
-    },
-    {
-      title: '更新时间',
-      dataIndex: 'updateTime',
-      valueType: 'dateTime',
-      hideInForm: true,
-    },
-    {
-      title: '操作',
-      dataIndex: 'option',
-      valueType: 'option',
-      render: (_, record) => [
-        <a
-          key="config"
-          onClick={() => {
-            handleUpdateModalOpen(true);
-            setCurrentRow(record);
-          }}
-        >
-          修改
-        </a>,
-        <a
-          key="config"
-          onClick={() => {
-            handleRemove(record);
-          }}
-        >
-          删除
-        </a>,
-      ],
-    },
-  ];
+  const onFinish = async (values: any) => {
+    // 检查是否存在接口id
+    if (!params.id) {
+      message.error('接口不存在');
+      return;
+    }
+    // 设置加载状态为true，表示正在加载
+    setInvokeLoading(true);
+    try {
+      // 发起接口调用请求，传入一个对象作为参数，这个对象包含了id和values的属性，
+      // 其中，id 是从 params 中获取的，而 values 是函数的参数
+      const res = await invokeInterfaceInfoUsingPost({
+        id: params.id,
+        ...values,
+      });
+      // 将接口调用结果设置到 invokeRes 状态中
+      setInvokeRes(res.data);
+      message.success('请求成功');
+    } catch (error: any) {
+      message.error('操作失败，' + error.message);
+    }
+  //  无论成功与否，将加载状态设置为false，表示加载完成
+    setInvokeLoading(false);
+  };
+
 
   return (
-    <PageContainer>
-      <ProTable<API.RuleListItem, API.PageParams>
-        headerTitle={'查询表格'}
-        actionRef={actionRef}
-        rowKey="key"
-        search={{
-          labelWidth: 120,
-        }}
-        toolBarRender={() => [
-          <Button
-            type="primary"
-            key="primary"
-            onClick={() => {
-              handleModalOpen(true);
-            }}
-          >
-            <PlusOutlined/> 新建
-          </Button>,
-        ]}
-        request={async (params, sort: Record<string, SortOrder>, filter: Record<string, React.ReactText[] | null>) => {
-          const res = await listInterfaceInfoByPageUsingPost({
-            ...params
-          })
-          if (res?.data) {
-            return {
-              data: res?.data.records || [],
-              success: true,
-              total: res?.data.total,
-            }
-          }
-        }}
-        columns={columns}
-        rowSelection={{
-          onChange: (_, selectedRows) => {
-            setSelectedRows(selectedRows);
-          },
-        }}
-      />
-      {selectedRowsState?.length > 0 && (
-        <FooterToolbar
-          extra={
-            <div>
-              已选择{' '}
-              <a style={{fontWeight: 600}}>{selectedRowsState.length}</a>{' '}
-              项
-              &nbsp;&nbsp;
-              <span>
-                服务调用次数总计 {selectedRowsState.reduce((pre, item) => pre + item.callNo!, 0)} 万
-              </span>
-            </div>
-          }
-        >
-          <Button
-            onClick={async () => {
-              await handleRemove(selectedRowsState);
-              setSelectedRows([]);
-              actionRef.current?.reloadAndRest?.();
-            }}
-          >
-            批量删除
-          </Button>
-          <Button type="primary">
-            批量审批
-          </Button>
-        </FooterToolbar>
-      )}
-      <UpdateModal
-        columns={columns}
-        onSubmit={async (value) => {
-          const success = await handleUpdate(value);
-          if (success) {
-            handleUpdateModalOpen(false);
-            setCurrentRow(undefined);
-            if (actionRef.current) {
-              actionRef.current.reload();
-            }
-          }
-        }}
-        onCancel={() => {
-          handleUpdateModalOpen(false);
-          if (!showDetail) {
-            setCurrentRow(undefined);
-          }
-        }}
-        visible={updateModalOpen}
-        values={currentRow || {}}
-      />
-
-      <Drawer
-        width={600}
-        open={showDetail}
-        onClose={() => {
-          setCurrentRow(undefined);
-          setShowDetail(false);
-        }}
-        closable={false}
-      >
-        {currentRow?.name && (
-          <ProDescriptions<API.RuleListItem>
-            column={2}
-            title={currentRow?.name}
-            request={async () => ({
-              data: currentRow || {},
-            })}
-            params={{
-              id: currentRow?.name,
-            }}
-            columns={columns as ProDescriptionsItemProps<API.RuleListItem>[]}
-          />
+    <PageContainer title="查看接口文档">
+      <Card>
+        {data ? (
+          <Descriptions title={data.name} column={1}>
+            <Descriptions.Item label="接口状态">{data.status? '开启':'关闭'}</Descriptions.Item>
+            <Descriptions.Item label="描述">{data.description}</Descriptions.Item>
+            <Descriptions.Item label="请求地址">{data.url}</Descriptions.Item>
+            <Descriptions.Item label="请求方法">{data.method}</Descriptions.Item>
+            <Descriptions.Item label="请求头">{data.requestHeader}</Descriptions.Item>
+            <Descriptions.Item label="响应头">{data.responseHeader}</Descriptions.Item>
+            <Descriptions.Item label="请求参数">{data.requestParams}</Descriptions.Item>
+            <Descriptions.Item label="创建时间">{data.createTime}</Descriptions.Item>
+            <Descriptions.Item label="更新时间">{data.updateTime}</Descriptions.Item>
+          </Descriptions>
+        ) : (
+          <>接口不存在</>
         )}
-      </Drawer>
-      {/* 创建一个CreateModal组件，用于在点击新增按钮时弹出 */}
-      <CreateModal
-        columns={columns}
-        // 当取消按钮被点击时,设置更新模态框为false以隐藏模态窗口
-        onCancel={() => {
-          handleModalOpen(false);
-        }}
-        // 当用户点击提交按钮之后，调用handleAdd函数处理提交的数据，去请求后端添加数据(这里的报错不用管,可能里面组件的属性和外层的不一致)
-        onSubmit={(values) => {
-          handleAdd(values);
-        }}
-        // 根据更新窗口的值决定模态窗口是否显示
-        visible={createModalOpen}
-      />
+      </Card>
+
+      <Divider/>
+      <Card title='在线测试'>
+        {/* 创建一个表单,表单名称为"invoke",布局方式为垂直布局,当表单提交时调用onFinish方法 */}
+        <Form name="invoke" layout="vertical" onFinish={onFinish}>
+          {/* 创建一个表单项,用于输入请求参数,表单项名称为"userRequestParams" */}
+          <Form.Item label="请求参数" name="userRequestParams">
+            <Input.TextArea />
+          </Form.Item>
+          {/* 创建一个包裹项,设置其宽度占据 16 个栅格列 */}
+          <Form.Item wrapperCol={{ span: 16 }}>
+            {/* 创建调用按钮*/}
+            <Button type="primary" htmlType="submit">
+              调用
+            </Button>
+          </Form.Item>
+        </Form>
+      </Card>
+      <Card title="调用结果" loading={invokeLoading}>
+        {invokeRes}
+      </Card>
     </PageContainer>
   );
 };
 
-export default TableList;
+export default Index;
