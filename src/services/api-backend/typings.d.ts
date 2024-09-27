@@ -1,4 +1,21 @@
 declare namespace API {
+  type AnalysisVO = {
+    createTime?: string;
+    description?: string;
+    id?: number;
+    isDelete?: number;
+    method?: string;
+    name?: string;
+    requestHeader?: string;
+    requestParams?: string;
+    responseHeader?: string;
+    status?: number;
+    totalNum?: number;
+    updateTime?: string;
+    url?: string;
+    userId?: number;
+  };
+
   type BaseResponseBoolean_ = {
     code?: number;
     data?: boolean;
@@ -14,6 +31,12 @@ declare namespace API {
   type BaseResponseInterfaceInfoVO_ = {
     code?: number;
     data?: InterfaceInfoVO;
+    message?: string;
+  };
+
+  type BaseResponseListAnalysisVO_ = {
+    code?: number;
+    data?: AnalysisVO[];
     message?: string;
   };
 
@@ -59,6 +82,12 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponsePageUserInterfaceInfo_ = {
+    code?: number;
+    data?: PageUserInterfaceInfo_;
+    message?: string;
+  };
+
   type BaseResponsePageUserVO_ = {
     code?: number;
     data?: PageUserVO_;
@@ -83,6 +112,12 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseUserInterfaceInfoVO_ = {
+    code?: number;
+    data?: UserInterfaceInfoVO;
+    message?: string;
+  };
+
   type BaseResponseUserVO_ = {
     code?: number;
     data?: UserVO;
@@ -101,6 +136,11 @@ declare namespace API {
   };
 
   type DeleteRequest = {
+    id?: number;
+  };
+
+  type getInterfaceInfoVOByIdUsingGET1Params = {
+    /** id */
     id?: number;
   };
 
@@ -292,6 +332,19 @@ declare namespace API {
     total?: number;
   };
 
+  type PageUserInterfaceInfo_ = {
+    countId?: string;
+    current?: number;
+    maxLimit?: number;
+    optimizeCountSql?: boolean;
+    orders?: OrderItem[];
+    pages?: number;
+    records?: UserInterfaceInfo[];
+    searchCount?: boolean;
+    size?: number;
+    total?: number;
+  };
+
   type PageUserVO_ = {
     countId?: string;
     current?: number;
@@ -412,6 +465,52 @@ declare namespace API {
     userAvatar?: string;
     userName?: string;
     userRole?: string;
+  };
+
+  type UserInterfaceInfo = {
+    createTime?: string;
+    id?: number;
+    interfaceInfoId?: number;
+    isDelete?: number;
+    leftNum?: number;
+    status?: number;
+    totalNum?: number;
+    updateTime?: string;
+    userId?: number;
+  };
+
+  type UserInterfaceInfoAddRequest = {
+    interfaceInfoId?: number;
+    leftNum?: number;
+    totalNum?: number;
+    userId?: number;
+  };
+
+  type UserInterfaceInfoQueryRequest = {
+    current?: number;
+    id?: number;
+    interfaceInfoId?: number;
+    leftNum?: number;
+    pageSize?: number;
+    status?: number;
+    totalNum?: number;
+    userId?: number;
+  };
+
+  type UserInterfaceInfoUpdateRequest = {
+    id?: number;
+    leftNum?: number;
+    status?: number;
+    totalNum?: number;
+  };
+
+  type UserInterfaceInfoVO = {
+    id?: number;
+    interfaceInfoId?: number;
+    leftNum?: number;
+    status?: number;
+    totalNum?: number;
+    userId?: number;
   };
 
   type userLoginByWxOpenUsingGETParams = {
